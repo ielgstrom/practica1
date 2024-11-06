@@ -34,14 +34,30 @@ def get_list_of_nav():
 #IDEA: per cada pestanya que escollim, executem la funcio get_country_links per buscar l'historic de cada país i buscar les seves dades
 
 def get_smi_yearly_data(): # Va a la pantalla de SMI, i per cada link de pais, hi entra i guarda totes les dades que va trobant en un sol df
-  contry_links_smi = get_country_links(get_list_of_nav()['Salario SMI'])
-  df_result = pd.DataFrame()
-  for country, link in contry_links_smi.items():
-    formatted_link = get_list_of_nav()['Salario SMI'] + '/' + link.split('/')[2]
-    country_data = get_table_data(formatted_link, [0,1,2], [0,1,2]) #Busquem en el link formatejat, aquells titualr de columna 0, 1, 2 amb rows de contingut 0,1,2
-    country_data['Pais'] = country
-    df_result = pd.concat([df_result, country_data],ignore_index=True)
-  return df_result
+    contry_links_smi = get_country_links(get_list_of_nav()['Salario SMI'])
+    df_result = pd.DataFrame()
+    for country, link in contry_links_smi.items():
+        formatted_link = get_list_of_nav()['Salario SMI'] + '/' + link.split('/')[2]
+        country_data = get_table_data(formatted_link, [0,1,2], [0,1,2])
+        #Busquem en el link formatejat, aquells titualr de columna 0, 1, 2 amb rows de contingut 0,1,2
+        country_data['Pais'] = country
+        df_result = pd.concat([df_result, country_data],ignore_index=True)
+    df_result['SMI'] = pd.to_numeric(df_result['SMI'].str.replace('$', '',regex=False)
+                                     .str.replace('.','', regex=False)
+                                     .str.replace(',','.',regex=False)
+                                     .str.replace(' ', '', regex=False)
+                                    .str.replace('\u00A0', '', regex=False))
+    df_result['SMI Mon. Local'] = pd.to_numeric(df_result['SMI Mon. Local']
+                                    .str.replace('.','', regex=False)
+                                     .str.replace(',','.',regex=False)
+                                     .str.replace(' ', '', regex=False)
+                                    .str.replace('\u00A0', '', regex=False))
+    df_result['Fecha'] = df_result['Fecha'].str.replace(r'[^0-9.]', '', regex=True)
+    print(df_result)
+
+    df_result = df_result.groupby(['Pais', 'Fecha']).mean()
+
+    return df_result
 
 def get_debt_yearly_data():
   df_result = pd.DataFrame()

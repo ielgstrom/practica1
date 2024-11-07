@@ -39,22 +39,22 @@ def get_smi_yearly_data(): # Va a la pantalla de SMI, i per cada link de pais, h
     for country, link in contry_links_smi.items():
         formatted_link = get_list_of_nav()['Salario SMI'] + '/' + link.split('/')[2]
         country_data = get_table_data(formatted_link, [0,1,2], [0,1,2])
-        #Busquem en el link formatejat, aquells titualr de columna 0, 1, 2 amb rows de contingut 0,1,2
+        if country_data.empty:
+            continue
+        country_data = country_data[country_data['Fecha'].str.contains('2023', na=False)]
         country_data['Pais'] = country
         df_result = pd.concat([df_result, country_data],ignore_index=True)
     df_result['SMI'] = pd.to_numeric(df_result['SMI'].str.replace('$', '',regex=False)
                                      .str.replace('.','', regex=False)
                                      .str.replace(',','.',regex=False)
                                      .str.replace(' ', '', regex=False)
-                                    .str.replace('\u00A0', '', regex=False))
+                                     .str.replace('\u00A0', '', regex=False))
     df_result['SMI Mon. Local'] = pd.to_numeric(df_result['SMI Mon. Local']
-                                    .str.replace('.','', regex=False)
+                                     .str.replace('.','', regex=False)
                                      .str.replace(',','.',regex=False)
                                      .str.replace(' ', '', regex=False)
                                     .str.replace('\u00A0', '', regex=False))
     df_result['Fecha'] = df_result['Fecha'].str.replace(r'[^0-9.]', '', regex=True)
-    print(df_result)
-
     df_result = df_result.groupby(['Pais', 'Fecha']).mean()
 
     return df_result
@@ -64,6 +64,9 @@ def get_debt_yearly_data():
   contry_links_debt = get_country_links(get_list_of_nav()['Deuda'])
   for element,link in contry_links_debt.items():
     country_data = get_table_data(link, [0,1,2], [0,1,2])
+    if country_data.empty:
+        continue
+    country_data = country_data[country_data['Fecha'].str.contains('2023', na=False)]
     country_data['Pais'] = element
     df_result = pd.concat([df_result, country_data],ignore_index=True)
   return df_result
@@ -73,6 +76,8 @@ def get_epa_yearly_data(): ##Hauria d'agafar les dades d'una taula que no s'ha e
   contry_links_debt = get_country_links(get_list_of_nav()['EPA'])
   for element,link in contry_links_debt.items():
     country_data = get_table_data(link, [0,1,2,3], [0,1,2,3],True)
+    if "2023" not in country_data['Fecha']:
+        continue
     country_data['Pais'] = element
     df_result = pd.concat([df_result, country_data],ignore_index=True)
     break

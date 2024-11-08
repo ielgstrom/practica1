@@ -32,7 +32,16 @@ def get_list_of_nav():
 
 
 #IDEA: per cada pestanya que escollim, executem la funcio get_country_links per buscar l'historic de cada país i buscar les seves dades
-
+def generate_result_table(country_links, list_headers_table = [0,1,2], list_header_table = [0,1,2]):
+    df_result = pd.DataFrame()
+    for country, link in country_links.items():
+        country_data = get_table_data(link, list_headers_table, list_header_table)
+        if country_data.empty:
+            continue
+        country_data = country_data[country_data['Fecha'].str.contains('2023', na=False)]
+        country_data['Pais'] = country
+        df_result = pd.concat([df_result, country_data], ignore_index=True)
+    return df_result
 def get_smi_yearly_data(): # Va a la pantalla de SMI, i per cada link de pais, hi entra i guarda totes les dades que va trobant en un sol df
     contry_links_smi = get_country_links(get_list_of_nav()['Salario SMI'])
     df_result = pd.DataFrame()
@@ -58,30 +67,31 @@ def get_smi_yearly_data(): # Va a la pantalla de SMI, i per cada link de pais, h
     df_result = df_result.groupby(['Pais', 'Fecha']).mean()
 
     return df_result
-
+def get_deficit_yearly_data():
+    contry_links_decifit = get_country_links(get_list_of_nav()['Déficit'])
+    df_result = generate_result_table(contry_links_decifit)
+    return df_result
 def get_debt_yearly_data():
-  df_result = pd.DataFrame()
   contry_links_debt = get_country_links(get_list_of_nav()['Deuda'])
-  for element,link in contry_links_debt.items():
-    country_data = get_table_data(link, [0,1,2], [0,1,2])
-    if country_data.empty:
-        continue
-    country_data = country_data[country_data['Fecha'].str.contains('2023', na=False)]
-    country_data['Pais'] = element
-    df_result = pd.concat([df_result, country_data],ignore_index=True)
+  df_result = generate_result_table(contry_links_debt)
   return df_result
 
 def get_epa_yearly_data(): ##Hauria d'agafar les dades d'una taula que no s'ha executat, ja que s'executa per JS.
-  df_result = pd.DataFrame()
-  contry_links_debt = get_country_links(get_list_of_nav()['EPA'])
-  for element,link in contry_links_debt.items():
-    country_data = get_table_data(link, [0,1,2,3], [0,1,2,3],True)
-    if "2023" not in country_data['Fecha']:
-        continue
-    country_data['Pais'] = element
-    df_result = pd.concat([df_result, country_data],ignore_index=True)
-    break
-  return df_result
+
+    contry_links_epa = get_country_links(get_list_of_nav()['EPA'])
+    df_result = generate_result_table(contry_links_epa,[0,1,2,3],[0,1,2,3])
+    df_result['Fecha'] = df_result['Fecha'].str.replace(r'[^0-9.]', '', regex=True)
+    df_result['Parados'] = pd.to_numeric(df_result['Parados']
+                                              .str.replace('.', '', regex=False)
+                                       .str.replace('K', '', regex=False))
+    df_result['Empleados'] = pd.to_numeric(df_result['Empleados']
+                                              .str.replace('.', '', regex=False)
+                                         .str.replace('K', '', regex=False))
+    df_result['Activos'] = pd.to_numeric(df_result['Activos']
+                                              .str.replace('.', '', regex=False)
+                                       .str.replace('K', '', regex=False))
+    df_result = df_result.groupby(['Pais', 'Fecha']).mean()
+    return df_result
 
 
 def get_table_data(url_to_search: str, list_headers_table: list, list_columns_table:list, load_js:bool = False) -> pd.DataFrame:

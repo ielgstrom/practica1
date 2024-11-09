@@ -69,11 +69,12 @@ def get_smi_yearly_data(): # Va a la pantalla de SMI, i per cada link de pais, h
     return df_result
 def get_deficit_yearly_data():
     contry_links_decifit = get_country_links(get_list_of_nav()['Déficit'])
-    df_result = generate_result_table(contry_links_decifit)
+    df_result = generate_result_table(contry_links_decifit,[0,1,3],[0,1,3])
+    #df_result['SMI'] = pd.to_numeric(df_result['SMI'].str.replace('.', '', regex=False))
     return df_result
 def get_debt_yearly_data():
   contry_links_debt = get_country_links(get_list_of_nav()['Deuda'])
-  df_result = generate_result_table(contry_links_debt)
+  df_result = generate_result_table(contry_links_debt,[0,1,3,4],[0,1,3,4])
   return df_result
 
 def get_epa_yearly_data(): ##Hauria d'agafar les dades d'una taula que no s'ha executat, ja que s'executa per JS.

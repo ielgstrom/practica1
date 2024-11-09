@@ -6,6 +6,7 @@ print("a")
 debt_data = get_debt_yearly_data()
 print("b")
 deficit_data = get_deficit_yearly_data()
+#print(deficit_data)
 #epa_data = get_epa_yearly_data() #complicat
 
 df_joined = pd.merge(smi_data,debt_data, on=['Pais','Fecha'],how='outer')

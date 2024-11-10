@@ -1,15 +1,17 @@
-import pandas as pd
 from utils import *
+import concurrent.futures
 
-smi_data = get_smi_yearly_data()
-print("a")
-debt_data = get_debt_yearly_data()
-print("b")
-deficit_data = get_deficit_yearly_data()
 #print(deficit_data)
 #epa_data = get_epa_yearly_data() #complicat
+with concurrent.futures.ThreadPoolExecutor() as executor:
+    future_smi = executor.submit(get_smi_yearly_data)
+    future_debt = executor.submit(get_debt_yearly_data)
+    future_deficit = executor.submit(get_deficit_yearly_data)
+
+    smi_data = future_smi.result()
+    debt_data = future_debt.result()
+    deficit_data = future_deficit.result()
 
 df_joined = pd.merge(smi_data, debt_data, on=['Pais', 'Fecha'], how='outer')
 df_joined = pd.merge(df_joined, deficit_data, on=['Pais', 'Fecha'], how='outer')
-df_joined.head(n=10)
 df_joined.to_csv('../dataset/dataset.csv', index=False)

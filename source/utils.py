@@ -53,12 +53,14 @@ def get_smi_yearly_data():
                                                  .str.replace('.', '', regex=False)
                                                  .str.replace(',', '.', regex=False)
                                                  .str.replace(' ', '', regex=False)
-                                                 .str.replace('\u00A0', '', regex=False)).round(2)
+                                                 .str.replace('\u00A0', '', regex=False))
+    df_result['SMI'] = df_result['SMI'].round(2)
     df_result['SMI Mon. Local'] = pd.to_numeric(df_result['SMI Mon. Local']
                                                 .str.replace('.', '', regex=False)
                                                 .str.replace(',', '.', regex=False)
                                                 .str.replace(' ', '', regex=False)
-                                                .str.replace('\u00A0', '', regex=False)).round(2)
+                                                .str.replace('\u00A0', '', regex=False))
+    df_result['SMI Mon. Local'] = df_result['SMI Mon. Local'].round(2)
     df_result['Fecha'] = df_result['Fecha'].str.replace(r'[^0-9.]', '', regex=True)
     df_result = df_result.groupby(['Pais', 'Fecha']).mean()
 
@@ -72,7 +74,7 @@ def get_deficit_yearly_data():
                                                 .str.replace('%', '', regex=False))
     df_result['Déficit (M.€)'] = pd.to_numeric(df_result['Déficit (M.€)'].str.replace('.', '', regex=False)
                                                .str.replace(',', '.', regex=False))
-    df_result.rename(columns={'Déficit (%PIB)': 'Deficit PIB', 'Déficit (M.€)': 'Deficit'}, inplace=True)
+    df_result.rename(columns={'Déficit (%PIB)': 'Dèficit PIB', 'Déficit (M.€)': 'Dèficit'}, inplace=True)
     return df_result
 
 

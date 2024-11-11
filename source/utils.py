@@ -29,6 +29,7 @@ def get_list_of_nav() -> dict[str:str]:
     url = 'https://datosmacro.expansion.com'
     page = smart_get_request(url)
     nav = page.find(id='block-bstb5-dm-topmenu').find_all('li')
+    # Es busca el llistat dels diferents elements a navegar
     list_of_nav = {elements.a.string: elements.a['href'] for elements in nav}
     return list_of_nav
 
@@ -36,11 +37,14 @@ def get_list_of_nav() -> dict[str:str]:
 def generate_result_table(country_links, list_headers_table=[0, 1, 2], list_header_table=[0, 1, 2],
                           link_definition=lambda x: x) -> pd.DataFrame:
     df_result = pd.DataFrame()
+    # Per cada país d'una caracteristica, es fa un bucle amb el pais i el enllaç del detall
     for country, link in country_links.items():
+        # Es determina quin enllaç es el que s'ha de navegar
         link = link_definition(link)
         country_data = get_table_data(link, list_headers_table, list_header_table)
         if country_data.empty:
             continue
+        # Filtrem per la data escollida per aquest projecte, 2023
         country_data = country_data[country_data['Fecha'].str.contains('2023', na=False)]
         country_data['Pais'] = country
         df_result = pd.concat([df_result, country_data], ignore_index=True)
@@ -64,6 +68,7 @@ def get_smi_yearly_data() -> pd.DataFrame:
                                                 .str.replace('\u00A0', '', regex=False))
     df_result['SMI Mon. Local'] = df_result['SMI Mon. Local'].round(2)
     df_result['Fecha'] = df_result['Fecha'].str.replace(r'[^0-9.]', '', regex=True)
+    # S'amitjana el resultats en cas que hi hagi diversos resultats per any
     df_result = df_result.groupby(['Pais', 'Fecha']).mean()
 
     return df_result
@@ -95,8 +100,10 @@ def get_debt_yearly_data():
 
 
 def get_epa_yearly_data() -> pd.DataFrame:
+    # Es consegueix la llista de paisos de la pestanya 'EPA'
     country_links_epa = get_country_links(get_list_of_nav()['EPA'])
     df_result = generate_result_table(country_links_epa, [0, 1, 2, 3], [0, 1, 2, 3])
+    # Es generen els resultats i es parsejen com corresponen
     df_result['Fecha'] = df_result['Fecha'].str.replace(r'[^0-9.]', '', regex=True)
     df_result['Parados'] = pd.to_numeric(df_result['Parados']
                                          .str.replace('.', '', regex=False)
@@ -119,11 +126,14 @@ def get_table_data(url_to_search: str, list_headers_table: list, list_columns_ta
         else:
             smi_page = return_js_page(url_to_search)
         tables = smi_page.find_all('table')
+        # Es busca la taula que contingui més informació de la pantalla
         table = [table for table in tables if len(table.find_all('tr')) > 5][0]
         headers = [column.string for column in table.thead.find_all('th')]
+        # Es busquen els headers de la taula dins d'una llista especificada
         header_filtered = [headers[index] for index in list_headers_table]
         data = []
         for row in table.tbody.find_all('tr'):
+            # Per cada fila de la taula, s'afageixen els resultats del df
             row_data = [cell.string for index_cell, cell in enumerate(row.find_all('td')) if
                         index_cell in list_columns_table]
             data.append(row_data)
@@ -135,6 +145,7 @@ def get_table_data(url_to_search: str, list_headers_table: list, list_columns_ta
 
 
 def get_country_links(url) -> dict[str, str]:
+    # S'obté un diccionari d'una pestanya, amb tots els països mencionats i l'url a la que redirigeixen
     smi_page = smart_get_request(url)
     table = smi_page.find('table').tbody.find_all('tr')
     list_of_countries = {row.td.string.replace(' [+]', ''): row.td.a['href'] for row in table}

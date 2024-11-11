@@ -1,8 +1,6 @@
 from utils import *
 import concurrent.futures
 
-#print(deficit_data)
-#epa_data = get_epa_yearly_data() #complicat
 with concurrent.futures.ThreadPoolExecutor() as executor:
     future_smi = executor.submit(get_smi_yearly_data)
     future_debt = executor.submit(get_debt_yearly_data)

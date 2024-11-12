@@ -6,7 +6,7 @@ deficit_data = get_deficit_yearly_data()  # Obtenim les dades relacionades amb e
 atur_data = get_atur_yearly_data()  # Obtenim les dades relacionades amb l'atur.
 pib_data = get_pib_yearly_data()  # Obtenim les dades relacionades amb el PIB.
 ipc_data = get_ipc_data()  # Obtenim les dades relacionades amb l'IPC.
-codes_data = get_codes()  # Obtenim els codis dels paisos.
+codes_data = get_codes()  # Obtenim els codis dels països.
 get_flags(codes_data)  # Obtenim les banderes a partir dels codis.
 
 df_joined = pd.merge(smi_data, debt_data, on=['Pais', 'Fecha'], how='outer')  # Ajuntem els dataframes en un sol dataframe, segons el pais i l'any.

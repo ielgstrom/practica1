@@ -2,7 +2,6 @@ from bs4 import BeautifulSoup as BS
 import requests as rq
 import pandas as pd
 import os
-import time
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
@@ -12,14 +11,16 @@ from selenium.common.exceptions import NoSuchElementException
 
 # Creem un diccionari que té per claus els noms dels indicadors, i per valors els links corresponents.
 def get_list_of_nav():
+    # Retorna un diccionari amb tots els enllaços dels topics que volem buscar
     url = 'https://datosmacro.expansion.com'
     page = smart_get_request(url)
-    nav = page.find(id='block-bstb5-dm-topmenu').find_all('li')
+    data = BS(page.content, features="html.parser")
+    nav = data.find(id='block-bstb5-dm-topmenu').find_all('li')
     list_of_nav = {elements.a.string: elements.a['href'] for elements in nav}
     return list_of_nav
 
 
-# Funció que obté les dades de les taules de la web utilitzant la funció get_table_data definida al final, i retorna un dataframe.
+# Funció que obté les dades de les taules de la web utilitzant la funció get_table_data.
 def generate_result_table(country_links, list_headers_table=[0, 1, 2], list_header_table=[0, 1, 2],
                           link_definition=lambda x: x):
     df_result = pd.DataFrame()
@@ -28,8 +29,10 @@ def generate_result_table(country_links, list_headers_table=[0, 1, 2], list_head
         country_data = get_table_data(link, list_headers_table, list_header_table)
         if country_data.empty:
             continue
+        # filtrem per l'any 2023 per tindre dades cotades
         country_data = country_data[country_data['Fecha'].str.contains('2023', na=False)]
         country_data['Pais'] = country
+        # Agreguem totes les dades resultants
         df_result = pd.concat([df_result, country_data], ignore_index=True)
     return df_result
 
@@ -42,7 +45,8 @@ def get_smi_yearly_data():
     df_result = generate_result_table(country_links_smi, link_definition=lambda x: url_smi + '/' + x.split('/')[
         2])  # Obtenim les dades de la taula.
     df_result['SMI'] = pd.to_numeric(df_result['SMI'].str.replace('$', '',
-                                                                  regex=False)  # Netegem el dataframe per a que sigui consistent amb totes les dades.
+                                                                  regex=False)
+                                     # Netegem el dataframe perquè sigui consistent amb totes les dades.
                                      .str.replace('.', '', regex=False)
                                      .str.replace(',', '.', regex=False)
                                      .str.replace(' ', '', regex=False)
@@ -229,15 +233,18 @@ def get_flags(countries, time_out=15):  # Utilitzarem els codis obtinguts en la 
         v = countries.iat[j, 1]  # I el codi.
         url = 'https://datosmacro.expansion.com/img/flagsvg/' + v + '.svg'  # Construim el link on es guarden les imatges, segons el codi.
         with open('./flags/' + k + '.svg', 'wb') as f:  # Desem la imatge a la carpeta amb el nom del país.
-            flag = smart_get_request_bis(url, timeout_seconds=time_out)
+            flag = smart_get_request(url, timeout_seconds=time_out)
             f.write(flag.content)
 
 
+# Funció a la qual s'especifica quina URL a buscar i busca, en la taula que contingui més informació, en unes columnes
+# especificades, quin son tots els seus continguts.
 def get_table_data(url_to_search: str, list_headers_table: list, list_columns_table: list) \
         -> pd.DataFrame:
     try:
         smi_page = smart_get_request(url_to_search)
-        tables = smi_page.find_all('table')
+        data = BS(smi_page.content, features="html.parser")
+        tables = data.find_all('table')
         table = [table for table in tables if len(table.find_all('tr')) > 5][0]
         headers = [column.string for column in table.thead.find_all('th')]
         header_filtered = [headers[index] for index in list_headers_table]
@@ -253,9 +260,11 @@ def get_table_data(url_to_search: str, list_headers_table: list, list_columns_ta
         return pd.DataFrame()
 
 
+# Funció que retorna, dins d'un
 def get_country_links(url):
     smi_page = smart_get_request(url)
-    table = smi_page.find('table').tbody.find_all('tr')
+    data = BS(smi_page.content, features="html.parser")
+    table = data.find('table').tbody.find_all('tr')
     list_of_countries = {row.td.string.replace(' [+]', ''): row.td.a['href'] for row in table}
     return list_of_countries
 
@@ -275,37 +284,9 @@ def smart_get_request(url, timeout_seconds=15):
         "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_3) AppleWebKit/5\
         37.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36"
     }
-    data = ''
     try:
         r = rq.get(url, headers=headers, timeout=timeout_seconds)
-        data = BS(r.content, features="html.parser")
     except rq.exceptions.Timeout:  # Si hi ha algun error en el request, retornem la informació.
-        print("Request a {} ha trigat massa en resoldre".format(url))
-        pass
-    except rq.exceptions.RequestException:
-        print("Request a {} no s'ha pogut resoldre".format(url))
-    pass
-    return data
-
-
-# Igual que la anterior, pero aquesta funció retorna el request sense passar per BS, útil
-# per a la funció get_flags.
-def smart_get_request_bis(url, timeout_seconds=15):
-    headers = {
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,\
-        */*;q=0.8",
-        "Accept-Encoding": "gzip, deflate, sdch, br",
-        "Accept-Language": "en-US,en;q=0.8",
-        "Cache-Control": "no-cache",
-        "dnt": "1",
-        "Pragma": "no-cache",
-        "Upgrade-Insecure-Requests": "1",
-        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_3) AppleWebKit/5\
-        37.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36"
-    }
-    try:
-        r = rq.get(url, headers=headers, timeout=timeout_seconds)
-    except rq.exceptions.Timeout:
         print("Request a {} ha trigat massa en resoldre".format(url))
         pass
     except rq.exceptions.RequestException:

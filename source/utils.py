@@ -20,12 +20,12 @@ def get_list_of_nav():
     return list_of_nav
 
 
-# Funció que obté les dades de les taules de la web utilitzant la funció get_table_data.
+# Funció que obté les dades de les taules de la web utilitzant la funció get_table_data i les filtra i prepara
 def generate_result_table(country_links, list_headers_table=[0, 1, 2], list_header_table=[0, 1, 2],
                           link_definition=lambda x: x):
     df_result = pd.DataFrame()
     for country, link in country_links.items():
-        link = link_definition(link)
+        link = link_definition(link)  # A cada pàgina, la codificació dels links és diferent, pel que s'especifica aquí
         country_data = get_table_data(link, list_headers_table, list_header_table)
         if country_data.empty:
             continue
@@ -239,13 +239,13 @@ def get_table_data(url_to_search: str, list_headers_table: list, list_columns_ta
         smi_page = smart_get_request(url_to_search)
         data = BS(smi_page.content, features="html.parser")
         tables = data.find_all('table')
-        table = [table for table in tables if len(table.find_all('tr')) > 5][0]
-        headers = [column.string for column in table.thead.find_all('th')]
-        header_filtered = [headers[index] for index in list_headers_table]
+        table = [table for table in tables if len(table.find_all('tr')) > 5][0]  # Escollim taula amb molts registres
+        headers = [column.string for column in table.thead.find_all('th')]  # Seleccionem tots els capçals de la taula
+        header_filtered = [headers[index] for index in list_headers_table]   # Seleccionem els que ens interessen
         data = []
         for row in table.tbody.find_all('tr'):
             row_data = [cell.string for index_cell, cell in enumerate(row.find_all('td')) if
-                        index_cell in list_columns_table]
+                        index_cell in list_columns_table] # Llegim el contingut de la fila
             data.append(row_data)
         df = pd.DataFrame(data, columns=header_filtered)
         return df

@@ -14,7 +14,7 @@ Aquest repositori comprèn els següents arxius i carpetes:
 
 ## Fer servir el repositori
 
-Per fer servir aquest project, s'ha d'executar l'arxiu main.py sense cap paràmetre associat.
+Per fer servir aquest projecte, s'ha d'executar l'arxiu main.py sense cap paràmetre associat.
 
 ## DOI de Zenodo
 

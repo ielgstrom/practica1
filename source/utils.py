@@ -108,6 +108,7 @@ def get_epa_yearly_data():
     df_result['Activos'] = pd.to_numeric(df_result['Activos']
                                          .str.replace('.', '', regex=False)
                                          .str.replace('K', '', regex=False))
+    # Agafem la mitjana de les dades per poder equiparar-les amb altres camps
     df_result = df_result.groupby(['Pais', 'Fecha']).mean()
     return df_result
 
@@ -197,7 +198,7 @@ def get_ipc_data():
     return df_result
 
 
-# Amb aquesta funció obtenim els codis de dos caràcters dels paisos presents a la web.
+# Amb aquesta funció obtenim els codis de dos caràcters dels països presents a la web.
 # Ho fem a través de selenium.
 def get_codes():
     url = 'https://datosmacro.expansion.com'
@@ -260,7 +261,7 @@ def get_table_data(url_to_search: str, list_headers_table: list, list_columns_ta
         return pd.DataFrame()
 
 
-# Funció que retorna, dins d'un
+# Funció que retorna, dins d'un tòpic, llista de països amb el seu enllaç pel detall
 def get_country_links(url):
     smi_page = smart_get_request(url)
     data = BS(smi_page.content, features="html.parser")
@@ -291,5 +292,5 @@ def smart_get_request(url, timeout_seconds=15):
         pass
     except rq.exceptions.RequestException:
         print("Request a {} no s'ha pogut resoldre".format(url))
-    pass
+        pass
     return r

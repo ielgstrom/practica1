@@ -13,13 +13,14 @@ Aquest repositori comprèn els següents arxius i carpetes:
 * Arxiu .gitignore per no afegir en el repositori arxius no desitjats
 
 ## Fer servir el repositori
+S'ha de tindre instal·lat el navegador Firefox, ja que se'n fa ús d'aquest.
 
-Per fer servir aquest projecte, s'han de fer dos passos: 
+Per executar aquest projecte, s'han de fer quatre passos: 
 1. Clonar el repositori en local: ```git clone https://github.com/ielgstrom/practica1.git```
 2. Anar al directori del repositori local: ```cd <repositori local>``` 
 3. Instal·lar les dependències: ```pip install -r requirements.txt```
-4. Executar l'arxiu main.py sense cap paràmetre associat tal que: ```python source/main.py```
+4. Executar l'arxiu main.py sense cap paràmetre associat: ```python3 source/main.py```
 
 ## DOI de Zenodo
 
-Es pot trobar el següent conjunt de dades amb el següent DOI: 10.5281/zenodo.14103372
+Es pot trobar el següent conjunt de dades amb el següent DOI: 10.5281/zenodo.14107653

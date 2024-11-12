@@ -219,13 +219,6 @@ def get_codes():
     return df_result
 
 
-# Amb aquest codi creem una carpeta 'flags' si no existeix el directori, per
-# guardar-hi les imatges de les banderes.
-newpath = r'flags/'
-if not os.path.exists(newpath):
-    os.makedirs(newpath)
-
-
 # Funció per tal de descarregar les banderes en format svg.
 # D'aquesta forma fem scrapping també d'imatges, no només de text.
 def get_flags(countries, time_out=15):  # Utilitzarem els codis obtinguts en la funció get_codes.
@@ -233,7 +226,7 @@ def get_flags(countries, time_out=15):  # Utilitzarem els codis obtinguts en la 
         k = countries.iat[j, 0]  # Seleccionem el nom del pais.
         v = countries.iat[j, 1]  # I el codi.
         url = 'https://datosmacro.expansion.com/img/flagsvg/' + v + '.svg'  # Construim el link on es guarden les imatges, segons el codi.
-        with open('./flags/' + k + '.svg', 'wb') as f:  # Desem la imatge a la carpeta amb el nom del país.
+        with open('../dataset/flags/' + k + '.svg', 'wb') as f:  # Desem la imatge a la carpeta amb el nom del país.
             flag = smart_get_request(url, timeout_seconds=time_out)
             f.write(flag.content)
 
